@@ -15,6 +15,13 @@ namespace Lab01
 {
     class Program
     {
+        // directory with text files
+        public const string BasePath = @"C:\Users\nikna\source\repos\FilesToAnalize";
+        public const string OutputDir = @"C:\Users\nikna\source\repos\output";
+        private static List<Country_Dictionary> colection = new List<Country_Dictionary>();
+
+
+
         static Dictionary<string, Articles> ReadArticleFiles(string basePath)
         {
             var match = new Regex(@"reut.*\.sgm");
@@ -33,7 +40,7 @@ namespace Lab01
                     Console.SetCursorPosition(0, Console.CursorTop - 1);
                 }
                 counter++;
-                Console.WriteLine(String.Format("{0:0.0}", (double) counter / filesCount * 100) + "%");
+                Console.WriteLine(String.Format("{0:0.0}", (double)counter / filesCount * 100) + "%");
 
                 if (match.IsMatch(Path.GetFileName(file)))
                 {
@@ -76,115 +83,30 @@ namespace Lab01
             }
         }
 
+
+       
         static void Main(string[] args)
         {
-            // directory with text files
-            var basePath = @"C:\Users\nikna\source\repos\FilesToAnalize";
-            var outputDir = @"C:\Users\nikna\source\repos\output";
-
-            CreateOrEmptyDir(outputDir);
+            CreateOrEmptyDir(OutputDir);
 
             var summaryFreqs = new Frequencies(Places.All);
             try
             {
                 Dictionary<string, Dictionary<string, int>> coinsidence = new Dictionary<string, Dictionary<string, int>>();
-                var data = ReadArticleFiles(basePath);
+                var data = ReadArticleFiles(BasePath);
 
-                // Prepare articles with specific tag frequency table
+                List<Article> articles = GetArticlesFromData(data);
 
-                foreach (var keyValuePair in data)
-                {
+                List<Article> articlesForLearning = getArticleForLearning(articles, 50);
+                List<Article> articlesForTesting = getArticleForTesting(articles, 50);
 
-                    var file = keyValuePair.Key;
-                    var articles = keyValuePair.Value;
-
-                    var freqs = new Frequencies(Places.All);
-                    
-
-                    // Display articles count
-                    Console.WriteLine("[" + file + "]: Znaleziono " + articles.REUTERS.Length + "artykułów.");
-
-                    foreach (var articleRaw in articles.REUTERS)
-                    {
-                        // find the articles with exactly 1 tag in countryTags
-                        // with non-empty body
-                        if (Article.SelectArticle(articleRaw))
-                        {
-                            var article = Article.CreateArticle(articleRaw);
-                            freqs.Increment(article.Place);
-
-                            StringBuilder builder = new StringBuilder();
-
-                            String path = Path.Join(outputDir, $"{file}_output.txt");
-                            String separator = "\n_________\n";
-
-                            builder.Append("Article: ");
-                            builder.Append(separator);
-                            builder.Append("Place: ");
-                            builder.Append(article.Place);
-                            builder.Append(separator);
-                            builder.Append("Month name words count: ");
-                            builder.Append(article.MonthNamesCount);
-                            builder.Append(separator);
-                            builder.Append("Abbreviation count: ");
-                            builder.Append(article.AbbreviationCount);
-                            builder.Append(separator);
-                            builder.Append(article.Text);
-                            string a = article.Text;
-
-                            string b = new string(a.Where(c => !char.IsPunctuation(c)).ToArray());
-                            var stemmer = new EnglishPorter2Stemmer();
-
-                            string stemmed = stemmer.Stem(a).Value;
-                            List<string> list = new List<string>();
-                            foreach (var s in stemmed.Split(' ').ToList())
-                            {
-                                if(s.Length > 1)
-                                {
-                                    list.Add(s);
-                                }
-                            }
-
-                            var result = list.GroupBy(x => x)
-                                               .ToDictionary(y => y.Key, y => y.Count())
-                                               .OrderByDescending(z => z.Value);
-
-                            List<int> array = new List<int>();
+                colection = CreateDictionarsFromArticles(articlesForLearning);
 
 
-                            if (coinsidence.ContainsKey(article.Text))
-                            {
-                               
-                                foreach(var d in (Dictionary<string, int>)result )
-                                {
-                                    /// тут треба зробити векторизацію
-                                    /// 
-                                }
+                Console.WriteLine("Try to parse:" + articlesForTesting[5].Place.Tag);
 
-                            }
-                            else
-                            {
-                                coinsidence.Add(article.Text, (Dictionary<string, int>)result);
-                            }
+                Console.WriteLine("Is it country usa ? - " + IsItCountry(getTokensFromArticle(articlesForTesting[5]), "usa"));
 
-
-                            // list =  list.Distinct().ToList();
-
-                            builder.Append("\n");
-                            builder.Append("\n");
-
-                            File.AppendAllText(path, builder.ToString(), System.Text.Encoding.UTF8);
-                        }
-                    }
-
-                    // Display tag count for each file
-                    foreach (var tagCountPair in freqs.Data)
-                    {
-                        Console.WriteLine("     " + tagCountPair.Key + ": " + tagCountPair.Value);
-                    }
-
-                    summaryFreqs.ReduceWith(freqs);
-                }
 
                 // Display summary
                 Console.WriteLine("-------------------------------");
@@ -203,6 +125,189 @@ namespace Lab01
             {
                 Console.WriteLine("Unknown error occurred: " + ex.Message);
             }
+        }
+        private static List<Article> getArticleForLearning(List<Article> articles, int percent)
+        {
+            List<Article> articlesForLearning = new List<Article>();
+
+            for (int i = 0; i < articles.Count() / 100 * percent; i++)
+            {
+                articlesForLearning.Add(articles.ElementAt(i));
+            }
+
+            return articlesForLearning;
+        }
+
+        private static List<Article> getArticleForTesting(List<Article> articles, int percent)
+        {
+            List<Article> articlesForTesting = new List<Article>();
+
+            for (int i = articles.Count() / 100 * (100 - percent); i < articles.Count(); i++)
+            {
+                articlesForTesting.Add(articles.ElementAt(i));
+            }
+
+            return articlesForTesting;
+        }
+
+        private static List<Article> GetArticlesFromData(Dictionary<string, Articles> data)
+        {
+            List<Article> articles = new List<Article>();
+            var summaryFreqs = new Frequencies(Places.All);
+
+            foreach (var keyValuePair in data)
+            {
+                var file = keyValuePair.Key;
+                var articlesFromData = keyValuePair.Value;
+
+                var freqs = new Frequencies(Places.All);
+
+                Console.WriteLine("[" + file + "]: Znaleziono " + articlesFromData.REUTERS.Length + "artykułów.");
+
+                foreach (var articleRaw in articlesFromData.REUTERS)
+                {
+                    if (Article.SelectArticle(articleRaw))
+                    {
+                        var article = Article.CreateArticle(articleRaw);
+                        freqs.Increment(article.Place);
+
+                        StringBuilder builder = new StringBuilder();
+
+                        String path = Path.Join(OutputDir, $"{file}_output.txt");
+                        String separator = "\n_________\n";
+
+                        builder.Append("Article: ");
+                        builder.Append(separator);
+                        builder.Append("Place: ");
+                        builder.Append(article.Place);
+                        builder.Append(separator);
+                        builder.Append("Month name words count: ");
+                        builder.Append(article.MonthNamesCount);
+                        builder.Append(separator);
+                        builder.Append("Abbreviation count: ");
+                        builder.Append(article.AbbreviationCount);
+                        builder.Append(separator);
+                        builder.Append(article.Text);
+
+                        articles.Add(article);
+                    }
+                }
+
+                summaryFreqs.ReduceWith(freqs);
+
+                Console.WriteLine("[" + file + "]: Znaleziono " + articlesFromData.REUTERS.Length + "artykułów.");
+            }
+
+            return articles;
+        }
+
+        private static List<Country_Dictionary> CreateDictionarsFromArticles(List<Article> articles)
+        {
+            Dictionary<string, List<string>> country_Dictionaries = new Dictionary<string, List<string>>();
+
+            foreach (Article article in articles)
+            {
+                string textFromArticle = article.Text;
+                string refactoringTextFromArticle = RefactoringText(textFromArticle);
+
+                var stemmer = new EnglishPorter2Stemmer();
+
+                string stemmed = stemmer.Stem(refactoringTextFromArticle).Value;
+
+                foreach (var word in stemmed.Split(' ').ToList())
+                {
+                    if (word.Length <= 3)
+                    {
+                        continue;
+                    }
+                    if (country_Dictionaries.ContainsKey(article.Place.Tag))   //.Words.Contains(word))
+                    {
+                        if (!country_Dictionaries[article.Place.Tag].Contains(word))
+                        {
+                            country_Dictionaries[article.Place.Tag].Add(word);
+                        }
+                    }
+                    else 
+                    {
+                        country_Dictionaries.Add(article.Place.Tag, new List<string> {word});
+                    }
+                }
+            }
+
+            List<Country_Dictionary> temp = new List<Country_Dictionary>();
+            foreach(var a in country_Dictionaries)
+            {
+                temp.Add(new Country_Dictionary(a.Key, a.Value));
+            }
+
+            return temp;
+        }
+
+        private static string RefactoringText(string text)
+        {
+            char[] charsToTrim = { '*', '"', '@', '#', '%', '&', '$', '>', '<' };
+            string refactoringText = text.Replace(Environment.NewLine, " ");
+            refactoringText = refactoringText.Replace("\n", " ");
+            refactoringText = refactoringText.Replace("\r\n", " ");
+            refactoringText = refactoringText.Trim(charsToTrim);
+
+            refactoringText = new string(refactoringText.Where(c => !char.IsPunctuation(c)).ToArray());
+            refactoringText = new string(refactoringText.Where(c => !char.IsDigit(c)).ToArray());
+            refactoringText = new string(refactoringText.Where(c => !char.IsNumber(c)).ToArray());
+
+            return refactoringText;
+        }
+
+        private static int CountCoincidence(List<String> toResearch  ,Country_Dictionary country_Dictionary)
+        {
+           
+            int counter = 0;
+            
+            foreach ( string word in toResearch) 
+            {
+                if (country_Dictionary.Words.Contains(word)) 
+                {
+                    counter++;
+                }
+            }
+
+            return counter;
+        }
+
+
+        private static decimal IsItCountry(List<String> toResearch, string country)
+        {
+           
+            Dictionary<string, int> coincedence = new Dictionary<string, int>();
+
+
+            foreach(var place in colection )
+            {
+                coincedence.Add(place.PlaceName, 0);
+            }
+
+            foreach (var sd in colection)
+            {
+                coincedence[sd.PlaceName] = CountCoincidence(toResearch, sd);
+                Console.WriteLine("Place:"+ sd.PlaceName + " Coincedence: " + coincedence[sd.PlaceName]);
+            }
+
+            return coincedence[country];
+        }
+
+
+
+        public static List<string> getTokensFromArticle(Article article)
+        {
+
+            string textFromArticle = article.Text;
+            string refactoringTextFromArticle = RefactoringText(textFromArticle);
+
+            var stemmer = new EnglishPorter2Stemmer();
+
+            string stemmed = stemmer.Stem(refactoringTextFromArticle).Value;
+
+            return stemmed.Split(' ').ToList();
         }
     }
 }
