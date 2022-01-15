@@ -102,10 +102,10 @@ namespace Lab01
 
                 colection = CreateDictionarsFromArticles(articlesForLearning);
 
+                Article artic = getRandomArticle(articlesForLearning);
+                Console.WriteLine("Try to parse:" + artic.Place.Tag);
 
-                Console.WriteLine("Try to parse:" + articlesForTesting[5].Place.Tag);
-
-                Console.WriteLine("Is it country usa ? - " + IsItCountry(getTokensFromArticle(articlesForTesting[5]), "usa"));
+                Console.WriteLine("What is it country ? -It is: " + IsItCountry(getTokensFromArticle(artic), "usa"));
 
 
                 // Display summary
@@ -275,7 +275,7 @@ namespace Lab01
         }
 
 
-        private static decimal IsItCountry(List<String> toResearch, string country)
+        private static string IsItCountry(List<String> toResearch, string country)
         {
            
             Dictionary<string, int> coincedence = new Dictionary<string, int>();
@@ -292,14 +292,15 @@ namespace Lab01
                 Console.WriteLine("Place:"+ sd.PlaceName + " Coincedence: " + coincedence[sd.PlaceName]);
             }
 
-            return coincedence[country];
+            return coincedence.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
         }
+
+
 
 
 
         public static List<string> getTokensFromArticle(Article article)
         {
-
             string textFromArticle = article.Text;
             string refactoringTextFromArticle = RefactoringText(textFromArticle);
 
@@ -309,5 +310,19 @@ namespace Lab01
 
             return stemmed.Split(' ').ToList();
         }
+
+
+
+        public static Article getRandomArticle(List<Article> articles)
+        {
+            return articles.ElementAt(new Random(DateTime.Now.Millisecond).Next(articles.Count()));
+        }
+
+
+
+
+
+
+
     }
 }
