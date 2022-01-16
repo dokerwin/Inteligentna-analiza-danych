@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Lab01.Data;
+using Porter2Stemmer;
 
 namespace Lab01.Analysis
 {
@@ -63,5 +64,59 @@ namespace Lab01.Analysis
         {
             return new Article(new Place(articleRaw.PLACES[0]), articleRaw.TEXT.BODY);
         }
+
+        public static List<string> getTokensFromArticle(Article article)
+        {
+            string textFromArticle = article.Text;
+            string refactoringTextFromArticle = Util.RefactoringText(textFromArticle);
+
+            var stemmer = new EnglishPorter2Stemmer();
+
+            string stemmed = stemmer.Stem(refactoringTextFromArticle).Value;
+
+            return stemmed.Split(' ').ToList();
+        }
+
+        public static Article getRandomArticle(List<Article> articles)
+        {
+            return articles.ElementAt(new Random(DateTime.Now.Millisecond).Next(articles.Count()));
+        }
+
+
+
+        public static List<Article> GetArticlesFromData(Dictionary<string, Articles> data)
+        {
+            List<Article> articles = new List<Article>();
+            var summaryFreqs = new Frequencies(Places.All);
+
+            foreach (var keyValuePair in data)
+            {
+                var file = keyValuePair.Key;
+                var articlesFromData = keyValuePair.Value;
+
+                var freqs = new Frequencies(Places.All);
+
+             //   Console.WriteLine("[" + file + "]: Znaleziono " + articlesFromData.REUTERS.Length + "artykułów.");
+
+                foreach (var articleRaw in articlesFromData.REUTERS)
+                {
+                    if (Article.SelectArticle(articleRaw))
+                    {
+                        var article = Article.CreateArticle(articleRaw);
+                        article.Words = Article.getTokensFromArticle(article);
+
+                        freqs.Increment(article.Place);
+                        articles.Add(article);
+                    }
+                }
+
+                summaryFreqs.ReduceWith(freqs);
+
+               // Console.WriteLine("[" + file + "]: Znaleziono " + articlesFromData.REUTERS.Length + "artykułów.");
+            }
+
+            return articles;
+        }
+
     }
 }
