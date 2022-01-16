@@ -156,6 +156,12 @@ namespace Lab01
         public static int analysisStreetMetric(List<int> vectorLearning, List<int> vectorAnalize)
         {
             int result = 0;
+
+            for (int i = 0; i < vectorLearning.Count; i++)
+            {
+                result += Math.Abs(vectorLearning.ElementAt(i) - vectorAnalize.ElementAt(i));
+            }
+
             return result;
         }
 
@@ -165,7 +171,7 @@ namespace Lab01
 
             for (int i = 0; i < vectorLearning.Count; i++)
             {
-                int curentResult = Math.Abs(vectorAnalize.ElementAt(i) - vectorLearning.ElementAt(i)); 
+                int curentResult = Math.Abs(vectorLearning.ElementAt(i) - vectorAnalize.ElementAt(i));
                 if (curentResult > result)
                 {
                     result = curentResult;
