@@ -16,7 +16,7 @@ namespace Lab01
     class Program
     {
         // directory with text files
-        public const string BasePath = @"C:\Analize\FilesToAnalize";
+        public const string BasePath = @"C:\Users\nikna\source\repos\FilesToAnalize";
         private static List<Country_Dictionary> DictionaryAllCountryCollection = new List<Country_Dictionary>();
 
 
@@ -112,7 +112,7 @@ namespace Lab01
 
         public static void analyzise(int k, List<Vector> vectorsFromLearningArticles, Vector vectorFromAnalyzise)
         {
-            Dictionary<string, int> countryMetric = new Dictionary<string, int>();
+            Dictionary<Vector, int> countryMetric = new Dictionary<Vector, int>();
             List<int> vectorAnalize = new List<int>();
 
             foreach (var Abbreviation in vectorFromAnalyzise.Characteristic)
@@ -126,7 +126,7 @@ namespace Lab01
                 foreach (var Abbreviation in vectors.Characteristic)
                 {
                     vectorAnalize.Add(Abbreviation.Value);
-                    countryMetric.Add(vectors.GetCountry() ,analysisEuclideaMetric(vectorLearning, vectorAnalize));
+                    countryMetric.Add(vectors ,analysisEuclideaMetric(vectorLearning, vectorAnalize));
                 }
             }
 
@@ -136,7 +136,7 @@ namespace Lab01
 
             foreach (var res in sortedDict)
             {
-                Console.WriteLine("Country: " + res.Key + " Value: " + res.Value);
+                Console.WriteLine("Country: " + res.Key.GetCountry() + " Value: " + res.Value);
             }
 
         }
