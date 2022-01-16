@@ -16,10 +16,8 @@ namespace Lab01
     class Program
     {
         // directory with text files
-        public const string BasePath = @"C:\Users\nikna\source\repos\FilesToAnalize";
-        public const string OutputDir = @"C:\Users\nikna\source\repos\output";
+        public const string BasePath = @"C:\Analize\FilesToAnalize";
         private static List<Country_Dictionary> DictionaryAllCountryCollection = new List<Country_Dictionary>();
-
 
 
         static Dictionary<string, Articles> ReadArticleFiles(string basePath)
@@ -64,31 +62,8 @@ namespace Lab01
             return result;
         }
 
-        static void CreateOrEmptyDir(string path)
-        {
-            if (!Directory.Exists(path))
-            {
-                Directory.CreateDirectory(path);
-            }
-            else
-            {
-                var match = new Regex(@"_output\.txt");
-                foreach (var file in Directory.EnumerateFiles(path))
-                {
-                    if (match.IsMatch(Path.GetFileName(file)))
-                    {
-                        File.Delete(file);
-                    }
-                }
-            }
-        }
-
-
-       
         static void Main(string[] args)
         {
-            CreateOrEmptyDir(OutputDir);
-
             var summaryFreqs = new Frequencies(Places.All);
             try
             {
@@ -100,9 +75,11 @@ namespace Lab01
                 List<Article> articlesForLearning = getArticleForLearning(articles, 50);
                 List<Article> articlesForTesting = getArticleForTesting(articles, 50);
 
-                DictionaryAllCountryCollection = CreateDictionarsFromArticles(articlesForTesting);
+                DictionaryAllCountryCollection = CreateDictionarsFromArticles(articlesForLearning);
 
-                Article artic = getRandomArticle(articlesForLearning);
+                List<Vector> vectorsFromLearningArticles = getVectrorsFromArticles(articlesForLearning);
+
+                Article artic = getRandomArticle(articlesForTesting);
                 Console.WriteLine("Try to parse:" + artic.Place.Tag);
 
                 Console.WriteLine("What is it country ? -It is: " + IsItCountry(getTokensFromArticle(artic), "usa"));
@@ -126,6 +103,44 @@ namespace Lab01
                 Console.WriteLine("Unknown error occurred: " + ex.Message);
             }
         }
+
+        public static void analysis(int k, List<Vector> vectorsFromLearningArticles, Vector vectorFromAnalyzise)
+        {
+            List<int> vectorAnalize = new List<int>();
+
+            foreach (var Abbreviation in vectorFromAnalyzise.Characteristic)
+            {
+                vectorAnalize.Add(Abbreviation.Value);
+            }
+
+            foreach (var vectors in vectorsFromLearningArticles)
+            {
+                List<int> vectorLearning = new List<int>();
+                foreach (var Abbreviation in vectors.Characteristic)
+                {
+                    vectorAnalize.Add(Abbreviation.Value);
+                    var l = analysisEuclideaMetric(vectorLearning, vectorAnalize);
+                }
+            }
+        }
+
+        public static int analysisEuclideaMetric(List<int> vectorLearning, List<int> vectorAnalize)
+        {
+            int l = 0;
+
+            return l;
+        }
+
+        public static void analysisStreetMetric(int k)
+        {
+
+        }
+
+        public static void analysisChebyshevMetric(int k)
+        {
+
+        }
+
         private static List<Article> getArticleForLearning(List<Article> articles, int percent)
         {
             List<Article> articlesForLearning = new List<Article>();
@@ -169,26 +184,9 @@ namespace Lab01
                     if (Article.SelectArticle(articleRaw))
                     {
                         var article = Article.CreateArticle(articleRaw);
+                        article.Words = getTokensFromArticle(article);
+
                         freqs.Increment(article.Place);
-
-                        StringBuilder builder = new StringBuilder();
-
-                        String path = Path.Join(OutputDir, $"{file}_output.txt");
-                        String separator = "\n_________\n";
-
-                        builder.Append("Article: ");
-                        builder.Append(separator);
-                        builder.Append("Place: ");
-                        builder.Append(article.Place);
-                        builder.Append(separator);
-                        builder.Append("Month name words count: ");
-                        builder.Append(article.MonthNamesCount);
-                        builder.Append(separator);
-                        builder.Append("Abbreviation count: ");
-                        builder.Append(article.AbbreviationCount);
-                        builder.Append(separator);
-                        builder.Append(article.Text);
-
                         articles.Add(article);
                     }
                 }
@@ -207,35 +205,29 @@ namespace Lab01
 
             foreach (Article article in articles)
             {
-                string textFromArticle = article.Text;
-                string refactoringTextFromArticle = RefactoringText(textFromArticle);
-
-                var stemmer = new EnglishPorter2Stemmer();
-
-                string stemmed = stemmer.Stem(refactoringTextFromArticle).Value;
-
-                foreach (var word in stemmed.Split(' ').ToList())
+                foreach (var word in article.Words)
                 {
                     if (word.Length <= 3)
                     {
                         continue;
                     }
-                    if (country_Dictionaries.ContainsKey(article.Place.Tag))   //.Words.Contains(word))
+
+                    if (country_Dictionaries.ContainsKey(article.Place.Tag))
                     {
                         if (!country_Dictionaries[article.Place.Tag].Contains(word))
                         {
                             country_Dictionaries[article.Place.Tag].Add(word);
                         }
                     }
-                    else 
+                    else
                     {
-                        country_Dictionaries.Add(article.Place.Tag, new List<string> {word});
+                        country_Dictionaries.Add(article.Place.Tag, new List<string> { word });
                     }
                 }
             }
 
             List<Country_Dictionary> temp = new List<Country_Dictionary>();
-            foreach(var a in country_Dictionaries)
+            foreach (var a in country_Dictionaries)
             {
                 temp.Add(new Country_Dictionary(a.Key, a.Value));
             }
@@ -258,14 +250,14 @@ namespace Lab01
             return refactoringText;
         }
 
-        private static int CountCoincidence(List<String> toResearch  ,Country_Dictionary country_Dictionary)
+        private static int CountCoincidence(List<String> toResearch, Country_Dictionary country_Dictionary)
         {
-           
+
             int counter = 0;
-            
-            foreach ( string word in toResearch) 
+
+            foreach (string word in toResearch)
             {
-                if (country_Dictionary.Words.Contains(word)) 
+                if (country_Dictionary.Words.Contains(word))
                 {
                     counter++;
                 }
@@ -274,30 +266,25 @@ namespace Lab01
             return counter;
         }
 
-
         private static string IsItCountry(List<String> toResearch, string country)
         {
-           
+
             Dictionary<string, int> coincedence = new Dictionary<string, int>();
 
 
-            foreach(var place in DictionaryAllCountryCollection )
+            foreach (var place in DictionaryAllCountryCollection)
             {
                 coincedence.Add(place.PlaceName, 0);
             }
 
-            foreach (var countryDictionary in DictionaryAllCountryCollection)
+            foreach (var sd in DictionaryAllCountryCollection)
             {
-                coincedence[countryDictionary.PlaceName] = CountCoincidence(toResearch, countryDictionary);
-                Console.WriteLine("Place:"+ countryDictionary.PlaceName + " Coincedence: " + coincedence[countryDictionary.PlaceName]);
+                coincedence[sd.PlaceName] = CountCoincidence(toResearch, sd);
+                Console.WriteLine("Place:" + sd.PlaceName + " Coincedence: " + coincedence[sd.PlaceName]);
             }
 
             return coincedence.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
         }
-
-
-
-
 
         public static List<string> getTokensFromArticle(Article article)
         {
@@ -311,11 +298,38 @@ namespace Lab01
             return stemmed.Split(' ').ToList();
         }
 
-
         public static Article getRandomArticle(List<Article> articles)
         {
             return articles.ElementAt(new Random(DateTime.Now.Millisecond).Next(articles.Count()));
         }
 
+        public static List<Vector> getVectrorsFromArticles(List<Article> articles)
+        {
+            List<Vector> vectors = new List<Vector>();
+
+            foreach (Article article in articles)
+            {
+                vectors.Add(createVectorForArticle(article));
+            }
+
+            return vectors;
+        }
+
+        public static Vector createVectorForArticle(Article article)
+        {
+            Dictionary<string, int> characteristic = new Dictionary<string, int>();
+
+            foreach (var Dictionary in DictionaryAllCountryCollection)
+            {
+                characteristic.Add(Dictionary.PlaceName + "dictionary", 0);
+            }
+
+            foreach (var Dictionary in DictionaryAllCountryCollection)
+            {
+                characteristic[Dictionary.PlaceName + "dictionary"] = CountCoincidence(article.Words, Dictionary);
+            }
+
+            return new Vector(article.Place.Tag, characteristic);
+        }
     }
 }
