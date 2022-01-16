@@ -104,7 +104,7 @@ namespace Lab01
             }
         }
 
-        public static void analysis(int k, List<Vector> vectorsFromLearningArticles, Vector vectorFromAnalyzise)
+        public static void analyzise(int k, List<Vector> vectorsFromLearningArticles, Vector vectorFromAnalyzise)
         {
             List<int> vectorAnalize = new List<int>();
 
@@ -126,9 +126,14 @@ namespace Lab01
 
         public static int analysisEuclideaMetric(List<int> vectorLearning, List<int> vectorAnalize)
         {
-            int l = 0;
+            int square = 0;
 
-            return l;
+            for (int i = 0; i < vectorLearning.Count; i++)
+            {
+                square += (vectorAnalize.ElementAt(i) - vectorLearning.ElementAt(i)) * (vectorAnalize.ElementAt(i) - vectorLearning.ElementAt(i));
+            }
+
+            return Convert.ToInt32(Math.Sqrt(square));
         }
 
         public static void analysisStreetMetric(int k)
