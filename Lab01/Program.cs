@@ -218,7 +218,7 @@ namespace Lab01
                     if (Article.SelectArticle(articleRaw))
                     {
                         var article = Article.CreateArticle(articleRaw);
-                        //article.Words = getTokensFromArticle(article);
+                        article.Words = getTokensFromArticle(article);
 
                         freqs.Increment(article.Place);
                         articles.Add(article);
