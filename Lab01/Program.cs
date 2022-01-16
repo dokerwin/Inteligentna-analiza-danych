@@ -18,7 +18,7 @@ namespace Lab01
         // directory with text files
         public const string BasePath = @"C:\Users\nikna\source\repos\FilesToAnalize";
         public const string OutputDir = @"C:\Users\nikna\source\repos\output";
-        private static List<Country_Dictionary> colection = new List<Country_Dictionary>();
+        private static List<Country_Dictionary> DictionaryAllCountryCollection = new List<Country_Dictionary>();
 
 
 
@@ -100,7 +100,7 @@ namespace Lab01
                 List<Article> articlesForLearning = getArticleForLearning(articles, 50);
                 List<Article> articlesForTesting = getArticleForTesting(articles, 50);
 
-                colection = CreateDictionarsFromArticles(articlesForLearning);
+                DictionaryAllCountryCollection = CreateDictionarsFromArticles(articlesForLearning);
 
                 Article artic = getRandomArticle(articlesForLearning);
                 Console.WriteLine("Try to parse:" + artic.Place.Tag);
@@ -281,15 +281,15 @@ namespace Lab01
             Dictionary<string, int> coincedence = new Dictionary<string, int>();
 
 
-            foreach(var place in colection )
+            foreach(var place in DictionaryAllCountryCollection )
             {
                 coincedence.Add(place.PlaceName, 0);
             }
 
-            foreach (var sd in colection)
+            foreach (var countryDictionary in DictionaryAllCountryCollection)
             {
-                coincedence[sd.PlaceName] = CountCoincidence(toResearch, sd);
-                Console.WriteLine("Place:"+ sd.PlaceName + " Coincedence: " + coincedence[sd.PlaceName]);
+                coincedence[countryDictionary.PlaceName] = CountCoincidence(toResearch, countryDictionary);
+                Console.WriteLine("Place:"+ countryDictionary.PlaceName + " Coincedence: " + coincedence[countryDictionary.PlaceName]);
             }
 
             return coincedence.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
