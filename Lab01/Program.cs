@@ -100,7 +100,7 @@ namespace Lab01
                 List<Article> articlesForLearning = getArticleForLearning(articles, 50);
                 List<Article> articlesForTesting = getArticleForTesting(articles, 50);
 
-                DictionaryAllCountryCollection = CreateDictionarsFromArticles(articlesForLearning);
+                DictionaryAllCountryCollection = CreateDictionarsFromArticles(articlesForTesting);
 
                 Article artic = getRandomArticle(articlesForLearning);
                 Console.WriteLine("Try to parse:" + artic.Place.Tag);
@@ -312,17 +312,10 @@ namespace Lab01
         }
 
 
-
         public static Article getRandomArticle(List<Article> articles)
         {
             return articles.ElementAt(new Random(DateTime.Now.Millisecond).Next(articles.Count()));
         }
-
-
-
-
-
-
 
     }
 }
