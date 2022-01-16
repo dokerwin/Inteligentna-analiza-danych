@@ -79,6 +79,12 @@ namespace Lab01
 
                 List<Vector> vectorsFromLearningArticles = getVectrorsFromArticles(articlesForLearning);
 
+
+                Vector randVector = getRandomVector(vectorsFromLearningArticles);
+
+                analyzise(3,vectorsFromLearningArticles, randVector);
+
+
                 Article artic = getRandomArticle(articlesForTesting);
                 Console.WriteLine("Try to parse:" + artic.Place.Tag);
 
@@ -106,6 +112,7 @@ namespace Lab01
 
         public static void analyzise(int k, List<Vector> vectorsFromLearningArticles, Vector vectorFromAnalyzise)
         {
+            Dictionary<string, int> countryMetric = new Dictionary<string, int>();
             List<int> vectorAnalize = new List<int>();
 
             foreach (var Abbreviation in vectorFromAnalyzise.Characteristic)
@@ -119,9 +126,19 @@ namespace Lab01
                 foreach (var Abbreviation in vectors.Characteristic)
                 {
                     vectorAnalize.Add(Abbreviation.Value);
-                    var l = analysisEuclideaMetric(vectorLearning, vectorAnalize);
+                    countryMetric.Add(vectors.GetCountry() ,analysisEuclideaMetric(vectorLearning, vectorAnalize));
                 }
             }
+
+            var sortedDict = (from entry in countryMetric orderby entry.Value ascending select entry)
+            .ToDictionary(pair => pair.Key, pair => pair.Value).Take(k);
+
+
+            foreach (var res in sortedDict)
+            {
+                Console.WriteLine("Country: " + res.Key + " Value: " + res.Value);
+            }
+
         }
 
         public static int analysisEuclideaMetric(List<int> vectorLearning, List<int> vectorAnalize)
@@ -201,7 +218,7 @@ namespace Lab01
                     if (Article.SelectArticle(articleRaw))
                     {
                         var article = Article.CreateArticle(articleRaw);
-                        article.Words = getTokensFromArticle(article);
+                        //article.Words = getTokensFromArticle(article);
 
                         freqs.Increment(article.Place);
                         articles.Add(article);
@@ -319,6 +336,13 @@ namespace Lab01
         {
             return articles.ElementAt(new Random(DateTime.Now.Millisecond).Next(articles.Count()));
         }
+
+
+        public static Vector getRandomVector(List<Vector> vectors)
+        {
+            return vectors.ElementAt(new Random(DateTime.Now.Millisecond).Next(vectors.Count()));
+        }
+       
 
         public static List<Vector> getVectrorsFromArticles(List<Article> articles)
         {
