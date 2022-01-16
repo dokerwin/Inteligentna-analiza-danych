@@ -11,13 +11,7 @@ namespace Lab01.Analysis
         public Place Place { get; private set; }
         public string Text { get; private set; }
 
-        public List<string> Words 
-        { 
-            get
-            {
-                return Text.Split(" ").ToList();
-            }
-        }
+        public List<string> Words { get; set; }
 
         public Article(Place place, String text)
         {

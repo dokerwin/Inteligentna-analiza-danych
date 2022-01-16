@@ -130,20 +130,32 @@ namespace Lab01
 
             for (int i = 0; i < vectorLearning.Count; i++)
             {
-                square += (vectorAnalize.ElementAt(i) - vectorLearning.ElementAt(i)) * (vectorAnalize.ElementAt(i) - vectorLearning.ElementAt(i));
+                square += (vectorLearning.ElementAt(i) - vectorAnalize.ElementAt(i)) * (vectorLearning.ElementAt(i) - vectorAnalize.ElementAt(i));
             }
 
             return Convert.ToInt32(Math.Sqrt(square));
         }
 
-        public static void analysisStreetMetric(int k)
+        public static int analysisStreetMetric(List<int> vectorLearning, List<int> vectorAnalize)
         {
-
+            int result = 0;
+            return result;
         }
 
-        public static void analysisChebyshevMetric(int k)
+        public static int analysisChebyshevMetric(List<int> vectorLearning, List<int> vectorAnalize)
         {
+            int result = 0;
 
+            for (int i = 0; i < vectorLearning.Count; i++)
+            {
+                int curentResult = Math.Abs(vectorAnalize.ElementAt(i) - vectorLearning.ElementAt(i)); 
+                if (curentResult > result)
+                {
+                    result = curentResult;
+                }
+            }
+
+            return result;
         }
 
         private static List<Article> getArticleForLearning(List<Article> articles, int percent)
