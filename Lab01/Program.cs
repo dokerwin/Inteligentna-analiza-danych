@@ -9,9 +9,10 @@ using Lab01.Analysis;
 using Lab01.Data;
 using static Lab01.Util;
 using static Lab01.Analysis.CountryDictionaryUtil;
-
+using static Lab01.Metrics;
 using Porter2Stemmer;
 using System.Linq;
+using System.Threading;
 
 namespace Lab01
 {
@@ -64,29 +65,62 @@ namespace Lab01
             return result;
         }
 
+        
         static void Main(string[] args)
         {
             var summaryFreqs = new Frequencies(Places.All);
             try
             {
+
+
+
                 Dictionary<string, Dictionary<string, int>> coinsidence = new Dictionary<string, Dictionary<string, int>>();
                 var data = ReadArticleFiles(BasePath);
 
                 List<Article> articles = Article.GetArticlesFromData(data);
 
-                List<Article> articlesForLearning = getArticleForLearning(articles, 50);
-                List<Article> articlesForTesting = getArticleForTesting(articles, 50);
+
+
+                List<Article> articlesForLearning = articlesForLearning = getArticleForLearning(articles, 50);
+           
+                List<Article> articlesForTesting = new List<Article>();
+                Thread thread1 = new Thread(() => { articlesForTesting= getArticleForTesting(articles, 50); });
+                thread1.Start();
 
                 DictionaryAllCountryCollection = CreateDictionarsFromArticles(articlesForLearning);
 
                 List<Vector> vectorsFromLearningArticles = Vector.getVectrorsFromArticles(articlesForLearning, DictionaryAllCountryCollection);
                 List<Vector> vectorsFromTestArticles  =    Vector.getVectrorsFromArticles(articlesForTesting, DictionaryAllCountryCollection);
-                Vector randVector = Vector.getRandomVector(vectorsFromTestArticles);
+              
+                
                 Console.Clear();
-                Console.WriteLine("Try to recognize an arcticlle by alorithhm. The rael text place is: " + randVector.GetCountry());
 
-                analyzise(3, vectorsFromLearningArticles, randVector);
+                while (true)
+                {
 
+                    Vector randVector = Vector.getRandomVector(vectorsFromTestArticles);
+
+                    Console.WriteLine("Please write 'K'");
+                    int a = 0;
+                    a = Console.Read();
+                    if (a > 10 || a <= 0)
+                    {
+                        Console.WriteLine("Please write correct 'K'");
+                    }
+
+                    Console.WriteLine("Try to recognize an arcticlle by alorithhm. The rael text place is: " + randVector.GetCountry());
+
+                    analyzise(Metrics.metrics.ChebyshevMetric, a, vectorsFromLearningArticles, randVector);
+
+
+                    Console.WriteLine("\n\n");
+                    Console.WriteLine("Try to recognize another random text? Yes enter 1\nExit enter 2");
+
+                    if (Console.ReadLine() == "2")
+                    {
+                        break;
+                    }
+                }
 
                 //Article artic = getRandomArticle(articlesForTesting);
                 // Console.WriteLine("Try to parse:" + artic.Place.Tag);
@@ -103,7 +137,7 @@ namespace Lab01
             }
         }
 
-        public static void analyzise(int k, List<Vector> vectorsFromLearningArticles, Vector vectorFromAnalyzise)
+        public static void analyzise(Metrics.metrics metrics, int k, List<Vector> vectorsFromLearningArticles, Vector vectorFromAnalyzise)
         {
             List<Tuple<Vector, int>> countryMetric = new List<Tuple<Vector, int>>();
             List<int> vectorAnalize = new List<int>();
@@ -120,17 +154,56 @@ namespace Lab01
                 {
                     vectorLearning.Add(Abbreviation.Value);
                 }
-                var a = new Tuple<Vector, int>(vectors, Metrics.analysisEuclideaMetric(vectorLearning, vectorAnalize));
-                countryMetric.Add(a);
+
+                switch (metrics)
+                {
+                    case metrics.ChebyshevMetric:
+                        {
+                            var a = new Tuple<Vector, int>(vectors, Metrics.analysisChebyshevMetric(vectorLearning, vectorAnalize));
+                            countryMetric.Add(a);
+                            break;
+
+                        }
+                    case metrics.EuclideaMetric:
+                        {
+                            var a = new Tuple<Vector, int>(vectors, Metrics.analysisEuclideaMetric(vectorLearning, vectorAnalize));
+                            countryMetric.Add(a);
+                            break;
+
+                        }
+                    case metrics.StreetMetric:
+                        {
+                            var a = new Tuple<Vector, int>(vectors, Metrics.analysisStreetMetric(vectorLearning, vectorAnalize));
+                            countryMetric.Add(a);
+                            break;
+                        }
+                }
+               
             }
 
+            Dictionary<string, int> distanceK = new Dictionary<string, int>();
             foreach (var country in Places.All)
             {
-                var maxNumber = countryMetric.OrderBy(x => x.Item2).Where(x => x.Item1.GetCountry() == country.Tag).Take(1); //only take 1 item
+                var maxNumber = countryMetric.OrderBy(x => x.Item2).Where(x => x.Item1.GetCountry() == country.Tag).Take(k); //only take 1 item
                 foreach (var m in maxNumber)
                 {
-                    Console.WriteLine("Country: " + m.Item1.GetCountry() + " Value: " + m.Item2);
+                    if (distanceK.ContainsKey(m.Item1.GetCountry()))
+                    {
+                        if (distanceK[m.Item1.GetCountry()] > m.Item2)
+                              distanceK[m.Item1.GetCountry()] = m.Item2;
+                    }
+                    else
+                    {
+                        distanceK.Add(m.Item1.GetCountry(), m.Item2);
+                    }
                 }
+            }
+            var minDistance = distanceK.OrderBy(x => x.Value).Take(k);
+
+            Console.WriteLine("Used metric: " + metrics.ToString());
+            foreach (var m in minDistance)
+            {
+                Console.WriteLine("Country: " + m.Key + " Distance: " + m.Value);
             }
         }
 

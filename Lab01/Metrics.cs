@@ -8,6 +8,15 @@ namespace Lab01
     class Metrics
     {
 
+        public enum metrics
+        {
+            EuclideaMetric = 1,
+            StreetMetric   = 2,
+            ChebyshevMetric= 3
+        } 
+
+
+
         public static int analysisEuclideaMetric(List<int> vectorLearning, List<int> vectorAnalize)
         {
             int square = 0;
