@@ -6,6 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Nager.Country" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\porter2-stemmer\Porter2Stemmer\Porter2Stemmer.csproj" />
   </ItemGroup>
 

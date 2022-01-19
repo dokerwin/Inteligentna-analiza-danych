@@ -14,8 +14,7 @@ using static Lab01.Metrics;
 using Porter2Stemmer;
 using System.Linq;
 using System.Threading;
-
-
+using Nager.Country;
 
 namespace Lab01
 {
@@ -25,6 +24,7 @@ namespace Lab01
         public const string BasePath = @"C:\Users\nikna\source\repos\FilesToAnalize";
         private static List<Country_Dictionary> DictionaryAllCountryCollection = new List<Country_Dictionary>();
 
+       
 
         static Dictionary<string, Articles> ReadArticleFiles(string basePath)
         {
@@ -74,7 +74,15 @@ namespace Lab01
             var summaryFreqs = new Frequencies(Places.All);
             try
             {
+                ICountryProvider countryProvider = new CountryProvider();
+                var countryInfo = countryProvider.GetCountryByName("United Kingdom");
 
+                foreach (var Abbreviation in countryInfo.Currencies)
+                {
+                 
+                }
+
+                
 
 
                 Dictionary<string, Dictionary<string, int>> coinsidence = new Dictionary<string, Dictionary<string, int>>();
