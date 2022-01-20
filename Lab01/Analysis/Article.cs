@@ -81,7 +81,29 @@ namespace Lab01.Analysis
         {
             return articles.ElementAt(new Random(DateTime.Now.Millisecond).Next(articles.Count()));
         }
+        public static List<Article> getArticleForLearning(List<Article> articles, int percent)
+        {
+            List<Article> articlesForLearning = new List<Article>();
 
+            for (int i = 0; i < articles.Count() / 100 * percent; i++)
+            {
+                articlesForLearning.Add(articles.ElementAt(i));
+            }
+
+            return articlesForLearning;
+        }
+
+        public static List<Article> getArticleForTesting(List<Article> articles, int percent)
+        {
+            List<Article> articlesForTesting = new List<Article>();
+
+            for (int i = articles.Count() / 100 * (100 - percent); i < articles.Count(); i++)
+            {
+                articlesForTesting.Add(articles.ElementAt(i));
+            }
+
+            return articlesForTesting;
+        }
 
 
         public static List<Article> GetArticlesFromData(Dictionary<string, Articles> data)

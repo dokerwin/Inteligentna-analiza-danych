@@ -79,10 +79,10 @@ namespace Lab01
 
                 foreach (var Abbreviation in countryInfo.Currencies)
                 {
-                 
+
                 }
 
-                
+
 
 
                 Dictionary<string, Dictionary<string, int>> coinsidence = new Dictionary<string, Dictionary<string, int>>();
@@ -92,10 +92,10 @@ namespace Lab01
 
 
 
-                List<Article> articlesForLearning = articlesForLearning = getArticleForLearning(articles, 50);
+                List<Article> articlesForLearning = articlesForLearning = Article.getArticleForLearning(articles, 30);
 
                 List<Article> articlesForTesting = new List<Article>();
-                Thread thread1 = new Thread(() => { articlesForTesting = getArticleForTesting(articles, 50); });
+                Thread thread1 = new Thread(() => { articlesForTesting = Article.getArticleForTesting(articles, 70); });
                 thread1.Start();
 
                 DictionaryAllCountryCollection = CreateDictionarsFromArticles(articlesForLearning);
@@ -103,11 +103,9 @@ namespace Lab01
                 List<Vector> vectorsFromLearningArticles = Vector.getVectrorsFromArticles(articlesForLearning, DictionaryAllCountryCollection);
                 List<Vector> vectorsFromTestArticles = Vector.getVectrorsFromArticles(articlesForTesting, DictionaryAllCountryCollection);
 
-                int assd = vectorsFromTestArticles.Where(e => e.GetCountry() == "japan").Count();
 
-                Console.WriteLine("west-germany is : " +assd);
 
-                Console.WriteLine("//////////////////////////");
+                Console.WriteLine("//////////////////////////PRECISION////////////////////////////////");
                 Dictionary<string, double> precis = new Dictionary<string, double>
                 {
                     { metrics.ChebyshevMetric.ToString(), GetPrecision(metrics.ChebyshevMetric, vectorsFromTestArticles, vectorsFromLearningArticles) },
@@ -120,70 +118,82 @@ namespace Lab01
 
                 var bestPrecision = precis.Where(e => e.Value == precis.Max(e2 => e2.Value)).First();
 
-
-                Console.WriteLine("//////////////////////////");
                 Console.WriteLine("The best algorithm is: " + bestPrecision.Key + " Precision is: " + bestPrecision.Value);
+                Console.WriteLine("///////////////////////////////////////////////////////////////////");
+
+                Console.WriteLine("\n\n");
 
 
 
 
-
-                Console.WriteLine("//////////////////////////");
-                string place = "west-germany";
-                Dictionary<string, double> recall = new Dictionary<string, double>
+                Console.WriteLine("//////////////////////////RECAL/////////////////////////////////");
+                 List<Tuple<string, double>> AVGReacal = new List<Tuple<string, double>>();
+                foreach (var place in Places.All)
                 {
-                    { metrics.ChebyshevMetric.ToString(), Math.Round(GetRecall(metrics.ChebyshevMetric, vectorsFromTestArticles, vectorsFromLearningArticles, place),3) },
+                    Console.WriteLine("/////////////////////////Recal for place: "+ place.Tag +" /////////////////////////////");
+                    Dictionary<string, double> recall = new Dictionary<string, double>
+                {
+                    { metrics.ChebyshevMetric.ToString(), Math.Round(GetRecall(5,metrics.ChebyshevMetric, vectorsFromTestArticles, vectorsFromLearningArticles, place.Tag),3) },
 
-                    {  metrics.EuclideaMetric.ToString(),  Math.Round(GetRecall(metrics.EuclideaMetric, vectorsFromTestArticles, vectorsFromLearningArticles, place),3)},
+                    {  metrics.EuclideaMetric.ToString(),  Math.Round(GetRecall(5,metrics.EuclideaMetric, vectorsFromTestArticles, vectorsFromLearningArticles, place.Tag),3)},
 
-                    { metrics.StreetMetric.ToString(), Math.Round(GetRecall(metrics.StreetMetric, vectorsFromTestArticles, vectorsFromLearningArticles, place) ,3)}
+                    { metrics.StreetMetric.ToString(), Math.Round(GetRecall(5,metrics.StreetMetric, vectorsFromTestArticles, vectorsFromLearningArticles, place.Tag) ,3)}
 
                 };
+                    AVGReacal.Add(new Tuple<string, double> (recall.Where(e => e.Value == recall.Max(e2 => e2.Value)).First().Key ,
+                      recall.Where(e => e.Value == recall.Max(e2 => e2.Value)).First().Value));
+                    Console.WriteLine("////////////////////////////////////////////////////////////");
+                }
+                var result = AVGReacal.Where(e => e.Item2 == AVGReacal.Max(e2 => e2.Item2)).First();
+                Console.WriteLine("The best algorithm is: " + result.Item1 + "AVG Recall for all countries is: " + result.Item2);
+                Console.WriteLine("////////////////////////////////////////////////////////////////");
+             
 
-                KeyValuePair<string,double> bestRecall = recall.Where(e => e.Value == recall.Max(e2 => e2.Value)).First();
-
-                Console.WriteLine("//////////////////////////");
-                Console.WriteLine("The best algorithm is: " + bestRecall.Key + " Precision is: " + bestRecall.Value);
+                Console.WriteLine("\n\n");
 
 
 
+                //Console.WriteLine("/////////////Best k/////////////");
 
 
-
-                //
-                //while (true)
+                //double f_bestK = 0;
+                //int d_bestK = 0;
+                //double bestInScope = 0;
+                //for (int k = 1; k < 10; k++)
                 //{
-
-                //    Vector randVector = Vector.getRandomVector(vectorsFromTestArticles);
-
-                //    Console.WriteLine("Please write 'K'");
-                //    int a = 0;
-                //    a = Console.Read();
-                //    if (a > 10 || a <= 0)
+                //    bestInScope = GetRecall(k, metrics.ChebyshevMetric, vectorsFromTestArticles, vectorsFromLearningArticles, place);
+                //    if (bestInScope > f_bestK)
                 //    {
-                //        Console.WriteLine("Please write correct 'K'");
-                //    }
-
-                //    Console.WriteLine("Try to recognize an arcticlle by alorithhm. The rael text place is: " + randVector.GetCountry());
-
-                //    analyzise(Metrics.metrics.ChebyshevMetric, a, vectorsFromLearningArticles, randVector);
-                //    analyzise(Metrics.metrics.EuclideaMetric, a, vectorsFromLearningArticles, randVector);
-                //    analyzise(Metrics.metrics.StreetMetric, a, vectorsFromLearningArticles, randVector);
-
-                //    Console.WriteLine("\n\n");
-                //    Console.WriteLine("Try to recognize another random text? Yes enter 1\nExit enter 2");
-
-                //    if (Console.Read() == 2)
-                //    {
-                //        break;
+                //        f_bestK = bestInScope;
+                //        d_bestK = k;
                 //    }
                 //}
 
-                //Article artic = getRandomArticle(articlesForTesting);
-                // Console.WriteLine("Try to parse:" + artic.Place.Tag);
-                //Console.WriteLine("What is it country ? -It is: " + IsItCountry(getTokensFromArticle(artic), "usa"));
+
+                //Console.WriteLine("The best k: " + d_bestK + " Recall is: " + f_bestK);
+                //Console.WriteLine("//////////////////////////");
+
+
+
+                Console.WriteLine("//////////////////////////ACCURACY///////////////////////////////////");
+                Dictionary<string, double> accuracy = new Dictionary<string, double>
+                {
+                    { metrics.ChebyshevMetric.ToString(), GetAccuracy(metrics.ChebyshevMetric, vectorsFromTestArticles, vectorsFromLearningArticles) },
+
+                    {  metrics.EuclideaMetric.ToString(),  GetAccuracy(metrics.EuclideaMetric, vectorsFromTestArticles, vectorsFromLearningArticles) },
+
+                    { metrics.StreetMetric.ToString(), GetAccuracy(metrics.StreetMetric, vectorsFromTestArticles, vectorsFromLearningArticles) }
+
+                };
+
+                var bestAccuracy = precis.Where(e => e.Value == precis.Max(e2 => e2.Value)).First();
+
+                Console.WriteLine("The best algorithm is: " + bestAccuracy.Key + " Accuracy is: " + bestAccuracy.Value);
+                Console.WriteLine("//////////////////////////////////////////////////////////////////////");
+                Console.WriteLine("\n\n");
 
             }
+
             catch (IOException ex)
             {
                 Console.WriteLine("Error reading files: " + ex.Message);
@@ -208,10 +218,10 @@ namespace Lab01
             double correct = 0;
             double fall = 0;
             int k = 5;
-            for (int i = 0; i < 100; i++)
+            foreach (var val in vectorsFromTestArticles)
             {
-                Vector randVector = Vector.getRandomVector(vectorsFromTestArticles);
-                if (analyzise(metric, k, vectorsFromLearningArticles, randVector))
+             
+                if (analyzise(metric, k, vectorsFromLearningArticles, val))
                 {
                     correct += 1;
                 }
@@ -223,35 +233,32 @@ namespace Lab01
 
             double precision = correct / (correct + fall);
 
-            Console.WriteLine("Precision of " +metric.ToString() + " is: " + precision);
-            return precision;
+            Console.WriteLine("Precision of " +metric.ToString() + " is: " + Math.Round(precision,4));
+            return Math.Round(precision, 4);
 
         }
 
 
 
 
-        private static double GetRecall(metrics metric, List<Vector> vectorsFromTestArticles, List<Vector> vectorsFromLearningArticles, string place)
+        private static double GetRecall(int k, metrics metric, List<Vector> vectorsFromTestArticles, List<Vector> vectorsFromLearningArticles, string place)
         {
 
             Console.WriteLine("Used metric: " + metric.ToString());
-            //   Console.Clear();
-            //Precision = TruePositives / (TruePositives + FalsePositives)
+     
             double TruePositive =  0;
             double TrueNegative =  0; 
             double FalseNegative = 0;
        
-
-            int k = 5;
-            for (int i = 0; i < 100; i++)
+            foreach (var val in vectorsFromTestArticles)
             {
-                Vector randVector = Vector.getRandomVector(vectorsFromTestArticles);
-                bool predictedCountry =  PredictCounty(metrics.EuclideaMetric, k, vectorsFromLearningArticles, randVector, place);
+                bool predictedCountry = analyzise(metric, k, vectorsFromLearningArticles, val);
+             //   bool predictedCountry =  PredictCounty(metrics.EuclideaMetric, k, vectorsFromLearningArticles, val, place);
                 if (predictedCountry) 
                 {
                     TruePositive += 1;
                 }
-                else if (randVector.GetCountry() == place)
+                else if (val.GetCountry() == place)
                 {
                         FalseNegative += 1;
                 }
@@ -260,14 +267,12 @@ namespace Lab01
                     TrueNegative += 1;
                 }
                
-
-                
             }
 
             double recall = TruePositive / (TruePositive + FalseNegative);
 
-            Console.WriteLine("Recal of " + metric.ToString() + " is: " + recall);
-            return recall;
+            Console.WriteLine("Recal of " + metric.ToString() + " is: " + Math.Round(recall, 4));
+            return Math.Round(recall,4);
 
         }
 
@@ -275,84 +280,45 @@ namespace Lab01
 
 
 
-        public static bool PredictCounty(Metrics.metrics metrics, int k, List<Vector> vectorsFromLearningArticles, Vector vectorFromAnalyzise, string place)
+
+
+        private static double GetAccuracy(metrics metric, List<Vector> vectorsFromTestArticles, List<Vector> vectorsFromLearningArticles)
         {
-            List<Tuple<Vector, int>> countryMetric = new List<Tuple<Vector, int>>();
-            List<int> vectorAnalize = new List<int>();
 
-            foreach (var Abbreviation in vectorFromAnalyzise.Characteristic)
-            {
-                vectorAnalize.Add(Abbreviation.Value);
-            }
+            Console.WriteLine("Used metric: " + metric.ToString());
 
-            foreach (var vectors in vectorsFromLearningArticles)
+            //   Console.Clear();
+            //Precision = TruePositives / (TruePositives + FalsePositives)
+            double correct = 0;
+            double fall = 0;
+            int k = 5;
+            foreach (var val in vectorsFromTestArticles)
             {
-                List<int> vectorLearning = new List<int>();
-                foreach (var Abbreviation in vectors.Characteristic)
+
+                if (analyzise(metric, k, vectorsFromLearningArticles, val))
                 {
-                    vectorLearning.Add(Abbreviation.Value);
+                    correct += 1;
                 }
-
-                switch (metrics)
+                else
                 {
-                    case metrics.ChebyshevMetric:
-                        {
-                            var a1 = new Tuple<Vector, int>(vectors, Metrics.analysisChebyshevMetric(vectorLearning, vectorAnalize));
-                            countryMetric.Add(a1);
-                            break;
-
-                        }
-                    case metrics.EuclideaMetric:
-                        {
-                            var a2 = new Tuple<Vector, int>(vectors, Metrics.analysisEuclideaMetric(vectorLearning, vectorAnalize));
-                            countryMetric.Add(a2);
-                            break;
-
-                        }
-                    case metrics.StreetMetric:
-                        {
-                            var a3 = new Tuple<Vector, int>(vectors, Metrics.analysisStreetMetric(vectorLearning, vectorAnalize));
-                            countryMetric.Add(a3);
-                            break;
-                        }
-                }
-
-            }
-
-            Dictionary<string, int> distanceK = new Dictionary<string, int>();
-            foreach (var country in Places.All)
-            {
-                var maxNumber = countryMetric.OrderBy(x => x.Item2).Where(x => x.Item1.GetCountry() == country.Tag).Take(k); //only take 1 item
-                foreach (var m in maxNumber)
-                {
-                    if (distanceK.ContainsKey(m.Item1.GetCountry()))
-                    {
-                        if (distanceK[m.Item1.GetCountry()] > m.Item2)
-                            distanceK[m.Item1.GetCountry()] = m.Item2;
-                    }
-                    else
-                    {
-                        distanceK.Add(m.Item1.GetCountry(), m.Item2);
-                    }
+                    fall += 1;
                 }
             }
-            var minDistance = distanceK.OrderBy(x => x.Value).Take(k);
-#if TEST
-            
-            Console.WriteLine("Used metric: " + metrics.ToString());
-            foreach (var m in minDistance)
+            double precision = 0;
+            if (vectorsFromLearningArticles.Count != 0)
             {
-                Console.WriteLine("Country: " + m.Key + " Distance: " + m.Value);
+                  precision = correct / vectorsFromLearningArticles.Count;
             }
-#endif
-            KeyValuePair<string, int> result = minDistance.Where(e => e.Value == minDistance.Min(e2 => e2.Value)).First();
-            if (result.Key == place)
-            {
-                return true;
-            }
-            else return false;
+            Console.WriteLine("Accuracy of " + metric.ToString() + " is: " + Math.Round(precision, 4));
+            return Math.Round(precision, 4);
 
         }
+
+
+
+
+
+
 
 
 
@@ -447,29 +413,7 @@ namespace Lab01
 
         }
 
-        private static List<Article> getArticleForLearning(List<Article> articles, int percent)
-        {
-            List<Article> articlesForLearning = new List<Article>();
-
-            for (int i = 0; i < articles.Count() / 100 * percent; i++)
-            {
-                articlesForLearning.Add(articles.ElementAt(i));
-            }
-
-            return articlesForLearning;
-        }
-
-        private static List<Article> getArticleForTesting(List<Article> articles, int percent)
-        {
-            List<Article> articlesForTesting = new List<Article>();
-
-            for (int i = articles.Count() / 100 * (100 - percent); i < articles.Count(); i++)
-            {
-                articlesForTesting.Add(articles.ElementAt(i));
-            }
-
-            return articlesForTesting;
-        }
+       
 
 
 
