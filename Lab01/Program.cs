@@ -83,30 +83,70 @@ namespace Lab01
                 }
 
 
-
-
-                Dictionary<string, Dictionary<string, int>> coinsidence = new Dictionary<string, Dictionary<string, int>>();
-                var data = ReadArticleFiles(BasePath);
-
-                List<Article> articles = Article.GetArticlesFromData(data);
+                while (true)
+                {
 
 
 
-                List<Article> articlesForLearning = articlesForLearning = Article.getArticleForLearning(articles, 30);
 
-                List<Article> articlesForTesting = new List<Article>();
-                Thread thread1 = new Thread(() => { articlesForTesting = Article.getArticleForTesting(articles, 70); });
-                thread1.Start();
+                    int learn = 0;
+                    int research = 0;
+                    Console.WriteLine("Repeat?");
+                    int repeat = 0;
+                    while (!Int32.TryParse(Console.ReadLine(), out repeat))
+                    {
+                        Console.WriteLine("Wrong input! Enter choice number again:");
+                    }
+                    if (repeat == 9)
+                    {
+                        break;
+                    }
 
-                DictionaryAllCountryCollection = CreateDictionarsFromArticles(articlesForLearning);
+                    else
+                    {
+                        Console.WriteLine("Please write percent of text for learning and researching");
+                        Console.WriteLine("Learn - :");
+                 
+                        while (!Int32.TryParse(Console.ReadLine(), out learn))
+                        {
+                            Console.WriteLine("Wrong input! Enter choice number again:");
+                        }
+                        Console.WriteLine("Research - :");
+                        while (!Int32.TryParse(Console.ReadLine(), out research))
+                        {
+                            Console.WriteLine("Wrong input! Enter choice number again:");
+                        }
+                    }
 
-                List<Vector> vectorsFromLearningArticles = Vector.getVectrorsFromArticles(articlesForLearning, DictionaryAllCountryCollection);
-                List<Vector> vectorsFromTestArticles = Vector.getVectrorsFromArticles(articlesForTesting, DictionaryAllCountryCollection);
+               
+
+                    Dictionary<string, Dictionary<string, int>> coinsidence = new Dictionary<string, Dictionary<string, int>>();
+                    var data = ReadArticleFiles(BasePath);
+
+                    List<Article> articles = Article.GetArticlesFromData(data);
 
 
 
-                Console.WriteLine("//////////////////////////PRECISION////////////////////////////////");
-                Dictionary<string, double> precis = new Dictionary<string, double>
+                    List<Article> articlesForLearning = articlesForLearning = Article.getArticleForLearning(articles, learn);
+
+                    List<Article> articlesForTesting = new List<Article>();
+                    Thread thread1 = new Thread(() => { articlesForTesting = Article.getArticleForTesting(articles, research); });
+                    thread1.Start();
+
+                    DictionaryAllCountryCollection = CreateDictionarsFromArticles(articlesForLearning);
+
+                    List<Vector> vectorsFromLearningArticles = Vector.getVectrorsFromArticles(articlesForLearning, DictionaryAllCountryCollection);
+                    List<Vector> vectorsFromTestArticles = Vector.getVectrorsFromArticles(articlesForTesting, DictionaryAllCountryCollection);
+
+
+
+
+                    Console.WriteLine("//////////////////////////PRECISION////////////////////////////////");
+
+
+
+
+                    Dictionary<string, double> precis = new Dictionary<string, double>
                 {
                     { metrics.ChebyshevMetric.ToString(), GetPrecision(metrics.ChebyshevMetric, vectorsFromTestArticles, vectorsFromLearningArticles) },
 
@@ -116,22 +156,22 @@ namespace Lab01
 
                 };
 
-                var bestPrecision = precis.Where(e => e.Value == precis.Max(e2 => e2.Value)).First();
+                    var bestPrecision = precis.Where(e => e.Value == precis.Max(e2 => e2.Value)).First();
 
-                Console.WriteLine("The best algorithm is: " + bestPrecision.Key + " Precision is: " + bestPrecision.Value);
-                Console.WriteLine("///////////////////////////////////////////////////////////////////");
+                    Console.WriteLine("The best algorithm is: " + bestPrecision.Key + " Precision is: " + bestPrecision.Value);
+                    Console.WriteLine("///////////////////////////////////////////////////////////////////");
 
-                Console.WriteLine("\n\n");
-
-
+                    Console.WriteLine("\n\n");
 
 
-                Console.WriteLine("//////////////////////////RECAL/////////////////////////////////");
-                 List<Tuple<string, double>> AVGReacal = new List<Tuple<string, double>>();
-                foreach (var place in Places.All)
-                {
-                    Console.WriteLine("/////////////////////////Recal for place: "+ place.Tag +" /////////////////////////////");
-                    Dictionary<string, double> recall = new Dictionary<string, double>
+
+
+                    Console.WriteLine("//////////////////////////RECAL/////////////////////////////////");
+                    List<Tuple<string, double>> AVGReacal = new List<Tuple<string, double>>();
+                    foreach (var place in Places.All)
+                    {
+                        Console.WriteLine("/////////////////////////Recal for place: " + place.Tag + " /////////////////////////////");
+                        Dictionary<string, double> recall = new Dictionary<string, double>
                 {
                     { metrics.ChebyshevMetric.ToString(), Math.Round(GetRecall(5,metrics.ChebyshevMetric, vectorsFromTestArticles, vectorsFromLearningArticles, place.Tag),3) },
 
@@ -140,43 +180,22 @@ namespace Lab01
                     { metrics.StreetMetric.ToString(), Math.Round(GetRecall(5,metrics.StreetMetric, vectorsFromTestArticles, vectorsFromLearningArticles, place.Tag) ,3)}
 
                 };
-                    AVGReacal.Add(new Tuple<string, double> (recall.Where(e => e.Value == recall.Max(e2 => e2.Value)).First().Key ,
-                      recall.Where(e => e.Value == recall.Max(e2 => e2.Value)).First().Value));
-                    Console.WriteLine("////////////////////////////////////////////////////////////");
-                }
-                var result = AVGReacal.Where(e => e.Item2 == AVGReacal.Max(e2 => e2.Item2)).First();
-                Console.WriteLine("The best algorithm is: " + result.Item1 + "AVG Recall for all countries is: " + result.Item2);
-                Console.WriteLine("////////////////////////////////////////////////////////////////");
-             
-
-                Console.WriteLine("\n\n");
+                        AVGReacal.Add(new Tuple<string, double>(recall.Where(e => e.Value == recall.Max(e2 => e2.Value)).First().Key,
+                          recall.Where(e => e.Value == recall.Max(e2 => e2.Value)).First().Value));
+                        Console.WriteLine("////////////////////////////////////////////////////////////");
+                    }
+                    var result = AVGReacal.Where(e => e.Item2 == AVGReacal.Max(e2 => e2.Item2)).First();
+                    Console.WriteLine("The best algorithm is: " + result.Item1 + "AVG Recall for all countries is: " + result.Item2);
+                    Console.WriteLine("////////////////////////////////////////////////////////////////");
 
 
-
-                //Console.WriteLine("/////////////Best k/////////////");
-
-
-                //double f_bestK = 0;
-                //int d_bestK = 0;
-                //double bestInScope = 0;
-                //for (int k = 1; k < 10; k++)
-                //{
-                //    bestInScope = GetRecall(k, metrics.ChebyshevMetric, vectorsFromTestArticles, vectorsFromLearningArticles, place);
-                //    if (bestInScope > f_bestK)
-                //    {
-                //        f_bestK = bestInScope;
-                //        d_bestK = k;
-                //    }
-                //}
-
-
-                //Console.WriteLine("The best k: " + d_bestK + " Recall is: " + f_bestK);
-                //Console.WriteLine("//////////////////////////");
+                    Console.WriteLine("\n\n");
 
 
 
-                Console.WriteLine("//////////////////////////ACCURACY///////////////////////////////////");
-                Dictionary<string, double> accuracy = new Dictionary<string, double>
+
+                    Console.WriteLine("//////////////////////////ACCURACY///////////////////////////////////");
+                    Dictionary<string, double> accuracy = new Dictionary<string, double>
                 {
                     { metrics.ChebyshevMetric.ToString(), GetAccuracy(metrics.ChebyshevMetric, vectorsFromTestArticles, vectorsFromLearningArticles) },
 
@@ -186,12 +205,12 @@ namespace Lab01
 
                 };
 
-                var bestAccuracy = precis.Where(e => e.Value == precis.Max(e2 => e2.Value)).First();
+                    var bestAccuracy = accuracy.Where(e => e.Value == accuracy.Max(e2 => e2.Value)).First();
 
-                Console.WriteLine("The best algorithm is: " + bestAccuracy.Key + " Accuracy is: " + bestAccuracy.Value);
-                Console.WriteLine("//////////////////////////////////////////////////////////////////////");
-                Console.WriteLine("\n\n");
-
+                    Console.WriteLine("The best algorithm is: " + bestAccuracy.Key + " Accuracy is: " + bestAccuracy.Value);
+                    Console.WriteLine("//////////////////////////////////////////////////////////////////////");
+                    Console.WriteLine("\n\n");
+                }
             }
 
             catch (IOException ex)
@@ -252,13 +271,14 @@ namespace Lab01
        
             foreach (var val in vectorsFromTestArticles)
             {
-                bool predictedCountry = analyzise(metric, k, vectorsFromLearningArticles, val);
+               Vector vec = Vector.getRandomVector(vectorsFromTestArticles);
+                bool predictedCountry = analyzise(metric, k, vectorsFromLearningArticles, vec);
              //   bool predictedCountry =  PredictCounty(metrics.EuclideaMetric, k, vectorsFromLearningArticles, val, place);
                 if (predictedCountry) 
                 {
                     TruePositive += 1;
                 }
-                else if (val.GetCountry() == place)
+                else if (vec.GetCountry() == place)
                 {
                         FalseNegative += 1;
                 }
